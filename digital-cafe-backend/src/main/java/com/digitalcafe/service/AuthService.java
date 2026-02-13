@@ -1,47 +1,31 @@
 package com.digitalcafe.service;
 
 import com.digitalcafe.dto.request.LoginRequest;
-import com.digitalcafe.dto.request.SimpleRegisterRequest;
 import com.digitalcafe.dto.request.RegisterRequest;
-import com.digitalcafe.dto.request.ResetPasswordRequest;
 import com.digitalcafe.dto.response.AuthResponse;
 import com.digitalcafe.dto.response.RegisterResponse;
 
 public interface AuthService {
 
-    // ================= REGISTER =================
+    // ================= REGISTRATION =================
 
-    AuthResponse register(SimpleRegisterRequest request);
-
+    // Full registration submitted by user (goes to admin approval)
     RegisterResponse comprehensiveRegister(RegisterRequest request);
+
+
+    // ================= ADMIN ACTION =================
+
+    // Admin approves the user and triggers password setup email
+    void approveUser(Long userId);
+
+
+    // ================= PASSWORD SETUP =================
+
+    // User sets password from email link after approval
+    void setPassword(String token, String password);
 
 
     // ================= LOGIN =================
 
     AuthResponse login(LoginRequest request);
-
-
-    // ================= EMAIL VERIFICATION =================
-
-    void verifyEmail(String token);
-
-    void resendVerificationEmail(String email);
-
-
-    // ================= PASSWORD =================
-
-    // after admin approval
-    void setPassword(String token, String password);
-
-    // forgot password flow
-    void forgotPassword(String email);
-
-    void resetPassword(String token, ResetPasswordRequest request);
-
-    void changePassword(String username, String oldPassword, String newPassword);
-
-
-    // ================= TOKEN =================
-
-    AuthResponse refreshToken(String refreshToken);
 }

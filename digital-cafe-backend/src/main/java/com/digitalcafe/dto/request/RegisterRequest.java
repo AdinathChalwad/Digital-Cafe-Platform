@@ -1,37 +1,32 @@
 package com.digitalcafe.dto.request;
 
+import com.digitalcafe.dto.request.AcademicInfoRequest;
+import com.digitalcafe.dto.request.AddressRequest;
+import com.digitalcafe.dto.request.PersonalDetailsRequest;
+import com.digitalcafe.dto.request.WorkExperienceRequest;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class RegisterRequest {
 
-    @NotBlank(message = "Username is required")
-    private String username;
+    @NotNull(message = "Role is required")
+    private String role;
 
-    // Password removed validation — user sets later
-    private String password;
-
-    @NotBlank(message = "Role is required")
-    private String role; // ADMIN, CAFE_OWNER, CHEF, WAITER, CUSTOMER
-
-    // Optional during initial registration
     @Valid
+    @NotNull(message = "Personal details are required")
     private PersonalDetailsRequest personalDetails;
 
     @Valid
+    @NotNull(message = "Address is required")
     private AddressRequest address;
 
     @Valid
+    @NotNull(message = "Academic information is required")
     private List<AcademicInfoRequest> academicInfoList;
 
-    @Valid
-    private List<WorkExperienceRequest> workExperienceList; // optional
+    private List<WorkExperienceRequest> workExperienceList;
 }

@@ -20,9 +20,6 @@ import {
   providedIn: 'root',
 })
 export class AuthService {
-  sendSetPasswordLink(email: string) {
-    throw new Error("Method not implemented.");
-  }
   private currentUserSubject: BehaviorSubject<User | null>;
   public currentUser: Observable<User | null>;
   private apiUrl = `${environment.apiUrl}/auth`;
@@ -151,7 +148,6 @@ export class AuthService {
       isProfileComplete: response.isProfileComplete,
       profileCompletionPercentage: response.profileCompletionPercentage,
       isActive: true,
-      status: response.status ||'ACTIVE' ,
     };
 
     // Store user data

@@ -90,17 +90,33 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:4200", "http://localhost:3000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+
+        // ✅ Allow Angular running on ANY localhost port (4200, 56060, etc.)
+        configuration.setAllowedOriginPatterns(Arrays.asList("http://localhost:*"));
+
+        // ✅ Allow all HTTP methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+
+        // ✅ Allow all headers
         configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // ✅ Allow cookies / authorization headers
         configuration.setAllowCredentials(true);
+
+        // ✅ Expose JWT header if needed
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
+
         configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
+
 }
 

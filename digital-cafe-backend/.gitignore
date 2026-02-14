@@ -9,11 +9,7 @@ target/
 logs/
 
 ### Maven ###
-.mvn/wrapper/maven-wrapper.jar
-.mvn/timing.properties
-.mvn/wrapper/maven-wrapper.properties
-ROLES_SUMMARY.md
-### STS ###
+
 .apt_generated
 .classpath
 .factorypath

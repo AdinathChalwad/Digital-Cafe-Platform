@@ -1,4 +1,3 @@
-
 export interface User {
   id: number;
   username: string;
@@ -6,19 +5,12 @@ export interface User {
   firstName: string;
   lastName: string;
   roles: string[];
-
-  // ADDED → approval system
-  status?: 'PENDING' | 'APPROVED' | 'ACTIVE' | 'REJECTED';
-
   isEmailVerified: boolean;
   isProfileComplete: boolean;
   profileCompletionPercentage: number;
   isActive: boolean;
   cafeId?: number;
   createdAt?: string;
-
-  // OPTIONAL BUT RECOMMENDED
-  approvedAt?: string;
 }
 
 export interface AuthResponse {
@@ -29,7 +21,6 @@ export interface AuthResponse {
   username: string;
   email: string;
   roles: string[];
-  status : 'PENDING' | 'APPROVED' | 'ACTIVE' | 'REJECTED';
   isEmailVerified: boolean;
   isProfileComplete: boolean;
   profileCompletionPercentage: number;
@@ -38,7 +29,7 @@ export interface AuthResponse {
 }
 
 export interface LoginRequest {
-  username: string;
+  email: string;
   password: string;
 }
 
@@ -98,12 +89,8 @@ export interface WorkExperience {
   ctc?: CtcInfo;
   reasonForLeaving?: string;
 }
+
 export interface RegisterRequest {
-  username: string;
-
-  // MODIFIED → optional now
-  password?: string;
-
   role: string;
   personalDetails: PersonalDetails;
   address: AddressInfo;
@@ -111,32 +98,22 @@ export interface RegisterRequest {
   workExperienceList?: WorkExperience[];
 }
 
+
 export interface RegisterResponse {
   message: string;
   userId: number;
   username: string;
   email: string;
   role: string;
-
-  // ADDED
-  status: 'PENDING' | 'APPROVED' | 'ACTIVE';
-
   emailVerified: boolean;
   profileCompleted: boolean;
   profileCompletionPercentage: number;
 }
 
 export enum UserRole {
-  ADMIN = 'ROLE_ADMIN',
-  CAFE_OWNER = 'ROLE_CAFE_OWNER',
-  CHEF = 'ROLE_CHEF',
-  WAITER = 'ROLE_WAITER',
-  CUSTOMER = 'ROLE_CUSTOMER',
-}
-
-export enum UserStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  ACTIVE = 'ACTIVE',
-  REJECTED = 'REJECTED'
+  ADMIN = "ROLE_ADMIN",
+  CAFE_OWNER = "ROLE_CAFE_OWNER",
+  CHEF = "ROLE_CHEF",
+  WAITER = "ROLE_WAITER",
+  CUSTOMER = "ROLE_CUSTOMER",
 }

@@ -77,25 +77,23 @@ export class LoginComponent implements OnInit {
         console.log("=== LOGIN SUCCESS ===");
         console.log("Full response:", response);
         console.log("User roles from response:", response.roles);
-        console.log("Email verified:", response.isEmailVerified);
         console.log("Profile complete:", response.isProfileComplete);
-        console.log("Must reset password:", response.mustResetPassword);
 
         this.notificationService.success("Login successful!");
 
         // Check if user must reset password
-        if (response.mustResetPassword) {
-          console.log("User must reset password, redirecting...");
-          this.router.navigate(["/auth/reset-password"]);
-          return;
-        }
+        // if (response.mustResetPassword) {
+        //   console.log("User must reset password, redirecting...");
+        //   this.router.navigate(["/auth/reset-password"]);
+        //   return;
+        // }
 
         // Check if email is verified (bypass for admins - handled by backend)
-        if (!response.isEmailVerified) {
-          console.log("Email not verified, redirecting...");
-          this.router.navigate(["/auth/verify-email"]);
-          return;
-        }
+        // if (!response.isEmailVerified) {
+        //   console.log("Email not verified, redirecting...");
+        //   this.router.navigate(["/auth/verify-email"]);
+        //   return;
+        // }
 
         // Check if profile is complete (for customers)
         if (this.authService.isCustomer() && !response.isProfileComplete) {

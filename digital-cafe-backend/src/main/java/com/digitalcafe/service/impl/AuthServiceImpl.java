@@ -67,6 +67,9 @@ public class AuthServiceImpl implements AuthService {
         user.setMustResetPassword(true);
         user.setStatus(UserStatus.PENDING);
 
+        user.setGovernmentIdType(request.getGovernmentIdType());
+        user.setGovernmentIdNumber(request.getGovernmentIdNumber());
+
         user.getRoles().add(role);
         user = userRepository.save(user);
 
@@ -138,19 +141,26 @@ public class AuthServiceImpl implements AuthService {
                 passwordResetTokenRepository.findByToken(token)
                         .orElseThrow(() -> new BadRequestException("Invalid token"));
 
-        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now()))
+        if (resetToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             throw new BadRequestException("Token expired");
+        }
 
         User user = resetToken.getUser();
+
+        // ✅ SET PASSWORD
         user.setPassword(passwordEncoder.encode(password));
+
+        // ✅ ACTIVATE USER (THIS WAS MISSING)
         user.setStatus(UserStatus.ACTIVE);
         user.setIsActive(true);
-
+        user.setMustResetPassword(false);
+        user.setIsProfileComplete(true);
         userRepository.save(user);
+        // ✅ DELETE TOKEN AFTER USE
         passwordResetTokenRepository.delete(resetToken);
-
-        log.info("Password set successfully for {}", user.getEmail());
+        log.info("Password set successfully and user activated: {}", user.getEmail());
     }
+
 
 
     // =====================================================

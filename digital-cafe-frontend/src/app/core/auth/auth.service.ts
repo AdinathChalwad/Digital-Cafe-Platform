@@ -87,19 +87,19 @@ export class AuthService {
     );
   }
 
-  verifyEmail(token: string): Observable<MessageResponse> {
-    return this.http
-      .get<MessageResponse>(`${this.apiUrl}/verify-email`, {
-        params: { token },
-      })
-      .pipe(catchError(this.handleError));
-  }
+  // verifyEmail(token: string): Observable<MessageResponse> {
+  //   return this.http
+  //     .get<MessageResponse>(`${this.apiUrl}/verify-email`, {
+  //       params: { token },
+  //     })
+  //     .pipe(catchError(this.handleError));
+  // }
 
-  resendVerificationEmail(email: string): Observable<MessageResponse> {
-    return this.http
-      .post<MessageResponse>(`${this.apiUrl}/resend-verification`, null, { params: { email } })
-      .pipe(catchError(this.handleError));
-  }
+  // resendVerificationEmail(email: string): Observable<MessageResponse> {
+  //   return this.http
+  //     .post<MessageResponse>(`${this.apiUrl}/resend-verification`, null, { params: { email } })
+  //     .pipe(catchError(this.handleError));
+  // }
 
   resetPassword(request: PasswordResetRequest): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.apiUrl}/reset-password`, request).pipe(catchError(this.handleError));
@@ -181,6 +181,16 @@ export class AuthService {
 
     return '/auth/login';
   }
+
+  // =============================
+// SET PASSWORD (AFTER APPROVAL)
+// =============================
+setPassword(token: string, password: string) {
+  return this.http.post(`${this.apiUrl}/set-password`, {
+    token: token,
+    password: password
+  });
+}
 
   private handleError(error: any): Observable<never> {
     let errorMessage = 'An error occurred';

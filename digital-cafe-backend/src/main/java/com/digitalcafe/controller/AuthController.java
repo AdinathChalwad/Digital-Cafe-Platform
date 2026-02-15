@@ -2,6 +2,7 @@ package com.digitalcafe.controller;
 
 import com.digitalcafe.dto.request.LoginRequest;
 import com.digitalcafe.dto.request.RegisterRequest;
+import com.digitalcafe.dto.request.SetPasswordRequest;
 import com.digitalcafe.dto.response.AuthResponse;
 import com.digitalcafe.dto.response.RegisterResponse;
 import com.digitalcafe.service.AuthService;
@@ -44,12 +45,15 @@ public class AuthController {
     // =====================================================
     @PostMapping("/set-password")
     public ResponseEntity<Map<String, String>> setPassword(
-            @RequestParam String token,
-            @RequestParam String password) {
+            @RequestBody SetPasswordRequest request) {
 
-        authService.setPassword(token, password);
-        return ResponseEntity.ok(Map.of("message", "Password set successfully. You can now login."));
+        authService.setPassword(request.getToken(), request.getPassword());
+
+        return ResponseEntity.ok(
+                Map.of("message", "Password set successfully. You can now login.")
+        );
     }
+
 
     // =====================================================
     // LOGIN (ONLY AFTER ACTIVE)

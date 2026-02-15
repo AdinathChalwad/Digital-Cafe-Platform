@@ -27,11 +27,17 @@ export class RegisterComponent implements OnInit {
   errorMessage = "";
   successMessage = "";
 
-  currentYear = new Date().getFullYear(); // used in HTML
-
-  // Step-1 Role Only
+  // ================= STEP 1 =================
+  username = "";
   role = "";
 
+  // ✅ NEW (matches HTML)
+  governmentId = {
+    type: "",
+    number: "",
+  };
+
+  // ================= STEP 2 =================
   personalDetails: PersonalDetails = {
     firstName: "",
     lastName: "",
@@ -41,6 +47,7 @@ export class RegisterComponent implements OnInit {
     maritalStatus: "SINGLE",
   };
 
+  // ================= STEP 3 =================
   address: AddressInfo = {
     street: "",
     city: "",
@@ -48,30 +55,36 @@ export class RegisterComponent implements OnInit {
     pincode: "",
   };
 
+  // ================= STEP 4 =================
   academicInfoList: AcademicInfo[] = [
     {
       institutionName: "",
       degree: "",
-      passingYear: this.currentYear,
+      passingYear: new Date().getFullYear(),
       grade: "",
       gradeInPercentage: 0,
     },
   ];
 
+  // ================= STEP 5 =================
   workExperienceList: WorkExperience[] = [];
 
   genderOptions = ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"];
   maritalStatusOptions = ["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"];
-  roleOptions = ["CUSTOMER", "CAFE_OWNER", "CHEF", "WAITER"];
+  roleOptions = ["CUSTOMER", "ADMIN", "CAFE_OWNER", "CHEF", "WAITER"];
+  currentYear = new Date().getFullYear();
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit() {}
 
-  // ---------------- STEP NAVIGATION ----------------
+  // ================= NAVIGATION =================
 
   nextStep() {
-    if (this.validateCurrentStep()) this.currentStep++;
+    if (this.validateCurrentStep()) {
+      this.currentStep++;
+      this.errorMessage = "";
+    }
   }
 
   previousStep() {
@@ -79,43 +92,97 @@ export class RegisterComponent implements OnInit {
   }
 
   goToStep(step: number) {
-    if (this.isStepAccessible(step)) this.currentStep = step;
+    if (step <= this.currentStep) this.currentStep = step;
   }
 
-  isStepAccessible(step: number): boolean {
-    return step <= this.currentStep;
-  }
-
-  getStepIcon(step: number): string {
-    if (step < this.currentStep) return "bi-check-circle-fill";
-    if (step === this.currentStep) return "bi-circle-fill";
-    return "bi-circle";
-  }
-
-  getStepClass(step: number): string {
-    if (step < this.currentStep) return "completed";
-    if (step === this.currentStep) return "active";
-    return "pending";
-  }
-
-  // ---------------- VALIDATION ----------------
+  // ================= VALIDATION =================
 
   validateCurrentStep(): boolean {
     switch (this.currentStep) {
-      case 1: return this.role !== "";
-      case 2: return !!this.personalDetails.firstName && !!this.personalDetails.email;
-      case 3: return !!this.address.city;
-      default: return true;
+      case 1:
+        return this.validateBasicInfo();
+      case 2:
+        return this.validatePersonalDetails();
+      case 3:
+        return this.validateAddress();
+      case 4:
+        return this.validateAcademicInfo();
+      default:
+        return true;
     }
   }
 
-  // ---------------- ACADEMIC ----------------
+  // ✅ UPDATED STEP-1 VALIDATION
+  validateBasicInfo(): boolean {
+    if (!this.username.trim()) {
+      this.errorMessage = "Username is required";
+      return false;
+    }
+
+    if (!this.role) {
+      this.errorMessage = "Please select a role";
+      return false;
+    }
+
+    if (!this.governmentId.type) {
+      this.errorMessage = "Please select Government ID Type";
+      return false;
+    }
+
+    if (!this.governmentId.number.trim()) {
+      this.errorMessage = "Government ID Number is required";
+      return false;
+    }
+
+    return true;
+  }
+
+  validatePersonalDetails(): boolean {
+    const pd = this.personalDetails;
+
+    if (!pd.firstName.trim() || !pd.lastName.trim()) {
+      this.errorMessage = "First and Last name required";
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(pd.email)) {
+      this.errorMessage = "Enter valid email";
+      return false;
+    }
+
+    return true;
+  }
+
+  validateAddress(): boolean {
+    if (!this.address.city.trim()) {
+      this.errorMessage = "City required";
+      return false;
+    }
+    if (!this.address.pincode.trim()) {
+      this.errorMessage = "Pincode required";
+      return false;
+    }
+    return true;
+  }
+
+  validateAcademicInfo(): boolean {
+    for (let a of this.academicInfoList) {
+      if (!a.institutionName.trim() || !a.degree.trim()) {
+        this.errorMessage = "Academic details incomplete";
+        return false;
+      }
+    }
+    return true;
+  }
+
+  // ================= LIST MANAGEMENT =================
 
   addAcademic() {
     this.academicInfoList.push({
       institutionName: "",
       degree: "",
-      passingYear: this.currentYear,
+      passingYear: new Date().getFullYear(),
       grade: "",
       gradeInPercentage: 0,
     });
@@ -125,8 +192,6 @@ export class RegisterComponent implements OnInit {
     if (this.academicInfoList.length > 1)
       this.academicInfoList.splice(index, 1);
   }
-
-  // ---------------- EXPERIENCE ----------------
 
   addWorkExperience() {
     this.workExperienceList.push({
@@ -143,39 +208,62 @@ export class RegisterComponent implements OnInit {
   removeWorkExperience(index: number) {
     this.workExperienceList.splice(index, 1);
   }
+onCurrentlyWorkingChange(index: number): void {
+  const work = this.workExperienceList[index];
 
-  onCurrentlyWorkingChange(index: number) {
-    if (this.workExperienceList[index].currentlyWorking) {
-      this.workExperienceList[index].endDate = "";
-      this.workExperienceList[index].reasonForLeaving = "";
-    }
+  if (work.currentlyWorking) {
+    // If currently working → clear end date & reason
+    work.endDate = '';
+    work.reasonForLeaving = '';
   }
+}
 
-  // ---------------- SUBMIT ----------------
+  // ================= SUBMIT =================
 
   onSubmit() {
+    if (!this.validateCurrentStep()) return;
 
     this.isLoading = true;
 
     const request: RegisterRequest = {
+      username: this.username.trim(),
       role: this.role,
+
+      // ✅ NEW — send Govt ID to backend
+      governmentIdType: this.governmentId.type,
+      governmentIdNumber: this.governmentId.number.trim(),
+
       personalDetails: this.personalDetails,
       address: this.address,
       academicInfoList: this.academicInfoList,
-      workExperienceList: this.workExperienceList.length
-        ? this.workExperienceList
-        : undefined,
+      workExperienceList: this.workExperienceList,
     };
 
     this.authService.register(request).subscribe({
-      next: () => {
-        this.successMessage = "Registration Submitted. Wait for Admin Approval.";
-        this.isLoading = false;
+      next: (res) => {
+        this.successMessage = res.message;
+        this.router.navigate(["/auth/login"]);
       },
-      error: () => {
-        this.errorMessage = "Registration Failed";
+      error: (err) => {
+        this.errorMessage = err.error?.message || "Registration failed";
         this.isLoading = false;
       },
     });
+  }
+
+  // ================= UI HELPERS =================
+
+  getStepIcon(step: number): string {
+    return step < this.currentStep ? "bi-check-circle-fill" : "bi-circle";
+  }
+
+  getStepClass(step: number): string {
+    if (step < this.currentStep) return "completed";
+    if (step === this.currentStep) return "active";
+    return "pending";
+  }
+
+  isStepAccessible(step: number): boolean {
+    return step <= this.currentStep;
   }
 }

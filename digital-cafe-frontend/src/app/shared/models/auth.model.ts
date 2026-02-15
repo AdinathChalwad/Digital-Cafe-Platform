@@ -91,13 +91,18 @@ export interface WorkExperience {
 }
 
 export interface RegisterRequest {
+  username: string;
   role: string;
+
+  // ✅ NEW FIELDS (Added)
+  governmentIdType: string;
+  governmentIdNumber: string;
+
   personalDetails: PersonalDetails;
   address: AddressInfo;
   academicInfoList: AcademicInfo[];
   workExperienceList?: WorkExperience[];
 }
-
 
 export interface RegisterResponse {
   message: string;

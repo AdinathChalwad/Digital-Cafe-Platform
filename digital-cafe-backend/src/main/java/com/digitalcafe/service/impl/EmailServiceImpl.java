@@ -41,7 +41,7 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendSetPasswordMail(String to, String token) {
 
-        String link = "http://localhost:4200/set-password?token=" + token;
+        String link = "http://localhost:4200/auth/set-password?token=" + token;
 
         String subject = "Account Approved — Set Your Password";
 

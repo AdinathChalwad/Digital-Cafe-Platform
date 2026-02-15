@@ -34,6 +34,12 @@ public class User extends BaseEntity {
     @Column(name = "username", nullable = false, unique = true, length = 50)
     private String username;
 
+    @Column(name = "government_id_type")
+    private String governmentIdType;
+
+    @Column(name = "government_id_number", unique = true)
+    private String governmentIdNumber;
+
     @Column(name = "email", nullable = false, unique = true, length = 100)
     private String email;
 

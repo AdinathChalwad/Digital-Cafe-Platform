@@ -13,8 +13,17 @@ import java.util.List;
 @Data
 public class RegisterRequest {
 
+    @NotNull(message = "Username is required")
+    private String username;
+
     @NotNull(message = "Role is required")
     private String role;
+
+    // ✅ NEW (Added for Government ID)
+    @NotNull(message = "Government Id is Required")
+    private String governmentIdType;
+    @NotNull(message = "Government Id Number is Required")
+    private String governmentIdNumber;
 
     @Valid
     @NotNull(message = "Personal details are required")

@@ -47,16 +47,17 @@ export const routes: Routes = [
             (m) => m.RegisterComponent,
           ),
       },
-      {
-        path: "verify-email",
-        loadComponent: () =>
-          import("./features/auth/verify-email/verify-email.component").then(
-            (m) => m.VerifyEmailComponent,
-          ),
-      },
+      
     ],
   },
 
+  {
+  path: 'auth/set-password',
+  loadComponent: () =>
+    import('./features/auth/set-password/set-password.component')
+      .then(m => m.SetPasswordComponent)
+}
+,
   // Admin routes with layout
   {
     path: "admin",
@@ -200,6 +201,7 @@ export const routes: Routes = [
       { path: "", redirectTo: "dashboard", pathMatch: "full" },
     ],
   },
+
   // Fallback route
   { path: "**", redirectTo: "" },
 ];

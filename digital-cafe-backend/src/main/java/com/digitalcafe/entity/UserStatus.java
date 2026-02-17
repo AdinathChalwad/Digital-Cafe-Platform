@@ -1,8 +1,8 @@
 package com.digitalcafe.entity;
 
 public enum UserStatus {
-    PENDING ,
+     PENDING_VERIFICATION,
+    VERIFIED,
     APPROVED ,
-    ACTIVE,
-    REJECTED ;
+    ACTIVE;
 }

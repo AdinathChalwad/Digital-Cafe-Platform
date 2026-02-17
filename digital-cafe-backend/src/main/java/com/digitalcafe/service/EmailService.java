@@ -20,9 +20,9 @@ public interface EmailService {
 
     // ================= ACCOUNT =================
 
-    void sendVerificationEmail(String to, String token, String tempPassword);
+    void sendVerificationEmail(String to, String token, String ignored);
 
-    void sendWelcomeEmail(String to, String username, String tempPassword);
+    void sendWelcomeEmail(String to, String username, String ignored);
 
     void sendRegistrationSuccessEmail(String to, String username);
 

@@ -61,7 +61,7 @@ public class UserServiceImpl implements UserService {
                 .isProfileComplete(false)
                 .mustResetPassword(false)
                 .profileCompletionPercentage(0)
-                .status(UserStatus.PENDING)
+                .status(UserStatus.PENDING_VERIFICATION)
                 .build();
 
         return mapToUserResponse(userRepository.save(user));
@@ -117,7 +117,7 @@ public class UserServiceImpl implements UserService {
                 .isProfileComplete(false)
                 .mustResetPassword(false)
                 .profileCompletionPercentage(0)
-                .status(UserStatus.PENDING)
+                .status(UserStatus.PENDING_VERIFICATION)
                 .build();
 
         return mapToUserResponse(userRepository.save(user));
@@ -135,38 +135,34 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User","id",id));
 
-        if(user.getStatus() != UserStatus.PENDING)
-            throw new BadRequestException("User is not pending");
+        if(user.getStatus() != UserStatus.VERIFIED)
+            throw new BadRequestException("User must verify email before approval");
 
         user.setStatus(UserStatus.APPROVED);
         user.setApprovedAt(LocalDateTime.now());
 
-        String token = UUID.randomUUID().toString();
-        user.setVerificationToken(token);
-        user.setTokenExpiry(LocalDateTime.now().plusHours(24));
-
         userRepository.save(user);
 
-        emailService.sendSetPasswordMail(user.getEmail(), token);
+        log.info("User approved by admin: {}", user.getEmail());
     }
 
 
-    @Override
-    @Transactional
-    public void rejectUser(Long id) {
-
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User","id",id));
-
-        user.setStatus(UserStatus.REJECTED);
-        userRepository.save(user);
-    }
+//    @Override
+//    @Transactional
+//    public void rejectUser(Long id) {
+//
+//        User user = userRepository.findById(id)
+//                .orElseThrow(() -> new ResourceNotFoundException("User","id",id));
+//
+//        user.setStatus(UserStatus.REJECTED);
+//        userRepository.save(user);
+//    }
 
 
     @Override
     @Transactional(readOnly = true)
     public List<UserResponse> getPendingUsers() {
-        return userRepository.findByStatus(UserStatus.PENDING)
+        return userRepository.findByStatus(UserStatus.PENDING_VERIFICATION)
                 .stream()
                 .map(this::mapToUserResponse)
                 .toList();
@@ -177,26 +173,7 @@ public class UserServiceImpl implements UserService {
 // SET PASSWORD VIA EMAIL LINK
 // ======================================================
 
-    @Override
-    @Transactional
-    public void setPassword(String token, String password) {
 
-        User user = userRepository.findByVerificationToken(token)
-                .orElseThrow(() -> new BadRequestException("Invalid token"));
-
-        if(user.getTokenExpiry().isBefore(LocalDateTime.now()))
-            throw new BadRequestException("Token expired");
-
-        user.setPassword(passwordEncoder.encode(password));
-        user.setStatus(UserStatus.ACTIVE);
-        user.setIsEmailVerified(true);
-        user.setMustResetPassword(false);
-
-        user.setVerificationToken(null);
-        user.setTokenExpiry(null);
-
-        userRepository.save(user);
-    }
 
 
 // ======================================================

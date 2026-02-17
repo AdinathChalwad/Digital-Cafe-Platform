@@ -71,7 +71,7 @@ export class RegisterComponent implements OnInit {
 
   genderOptions = ["MALE", "FEMALE", "OTHER", "PREFER_NOT_TO_SAY"];
   maritalStatusOptions = ["SINGLE", "MARRIED", "DIVORCED", "WIDOWED"];
-  roleOptions = ["CUSTOMER", "ADMIN", "CAFE_OWNER", "CHEF", "WAITER"];
+  roleOptions = ["CUSTOMER", "CAFE_OWNER"];
   currentYear = new Date().getFullYear();
 
   constructor(private authService: AuthService, private router: Router) {}
@@ -242,7 +242,7 @@ onCurrentlyWorkingChange(index: number): void {
     this.authService.register(request).subscribe({
       next: (res) => {
         this.successMessage = res.message;
-        this.router.navigate(["/auth/login"]);
+        this.router.navigate(["/auth/verify-email"]);
       },
       error: (err) => {
         this.errorMessage = err.error?.message || "Registration failed";

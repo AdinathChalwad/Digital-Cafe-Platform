@@ -28,4 +28,6 @@ public interface AuthService {
     // ================= LOGIN =================
 
     AuthResponse login(LoginRequest request);
+
+    void verifyEmail(String token);
 }

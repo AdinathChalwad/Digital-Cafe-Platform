@@ -1,12 +1,16 @@
 package com.digitalcafe.service.impl;
 
-import com.digitalcafe.dto.request.*;
+import com.digitalcafe.dto.request.LoginRequest;
+import com.digitalcafe.dto.request.RegisterRequest;
 import com.digitalcafe.dto.response.AuthResponse;
 import com.digitalcafe.dto.response.RegisterResponse;
 import com.digitalcafe.entity.*;
 import com.digitalcafe.exception.BadRequestException;
 import com.digitalcafe.exception.ResourceNotFoundException;
-import com.digitalcafe.repository.*;
+import com.digitalcafe.repository.EmailVerificationTokenRepository;
+import com.digitalcafe.repository.PasswordResetTokenRepository;
+import com.digitalcafe.repository.RoleRepository;
+import com.digitalcafe.repository.UserRepository;
 import com.digitalcafe.security.JwtUtil;
 import com.digitalcafe.service.AuthService;
 import com.digitalcafe.service.EmailService;
@@ -30,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -37,7 +42,7 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
 
     // =====================================================
-    // REGISTER (STEP-1 REGISTRATION → PENDING APPROVAL)
+    // REGISTER → SEND EMAIL VERIFICATION
     // =====================================================
 
     @Override
@@ -50,32 +55,22 @@ public class AuthServiceImpl implements AuthService {
             throw new BadRequestException("Email already registered");
         }
 
-        Role.RoleName roleName = Role.RoleName.valueOf(request.getRole());
-        Role role = roleRepository.findByName(roleName)
+        Role role = roleRepository.findByName(Role.RoleName.valueOf(request.getRole()))
                 .orElseThrow(() -> new ResourceNotFoundException("Role", "name", request.getRole()));
 
-        // ======================
-        // CREATE USER (NO PASSWORD YET)
-        // ======================
         User user = new User();
         user.setEmail(email);
-        user.setUsername(email); // email is login username
-        user.setPassword(null);  // password will be set later
+        user.setUsername(email);
+        user.setPassword(null);
         user.setIsActive(false);
-        user.setIsEmailVerified(true);
-        user.setIsProfileComplete(false);
+        user.setIsEmailVerified(false);
         user.setMustResetPassword(true);
-        user.setStatus(UserStatus.PENDING);
-
-        user.setGovernmentIdType(request.getGovernmentIdType());
-        user.setGovernmentIdNumber(request.getGovernmentIdNumber());
+        user.setStatus(UserStatus.PENDING_VERIFICATION);
 
         user.getRoles().add(role);
         user = userRepository.save(user);
 
-        // ======================
-        // CREATE PROFILE
-        // ======================
+        // Create Profile
         Profile profile = new Profile();
         profile.setUser(user);
         profile.setFirstName(request.getPersonalDetails().getFirstName());
@@ -89,33 +84,77 @@ public class AuthServiceImpl implements AuthService {
         user.setProfile(profile);
         userRepository.save(user);
 
-        log.info("User registered and waiting for admin approval: {}", email);
+        // Create verification token
+        EmailVerificationToken token = new EmailVerificationToken();
+        token.setToken(UUID.randomUUID().toString());
+        token.setUser(user);
+        token.setExpiresAt(LocalDateTime.now().plusHours(24));
+        emailVerificationTokenRepository.save(token);
+
+        emailService.sendVerificationEmail(user.getEmail(), token.getToken(), null);
+
+        log.info("User registered. Verification mail sent to {}", email);
 
         return RegisterResponse.builder()
-                .message("Registration submitted. Await admin approval.")
+                .message("Registration successful. Please verify your email.")
                 .userId(user.getId())
-                .username(user.getEmail())
                 .email(user.getEmail())
                 .role(request.getRole())
-                .emailVerified(true)
-                .profileCompleted(false)
-                .profileCompletionPercentage(50)
                 .build();
     }
 
+    // =====================================================
+    // VERIFY EMAIL
+    // =====================================================
+
+    @Override
+    @Transactional
+    public void verifyEmail(String token) {
+
+        EmailVerificationToken verificationToken =
+                emailVerificationTokenRepository.findByToken(token)
+                        .orElseThrow(() -> new BadRequestException("Invalid verification token"));
+
+        if (verificationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Verification token expired");
+        }
+
+        User user = verificationToken.getUser();
+
+        if (user.getIsEmailVerified()) {
+            throw new BadRequestException("Email already verified");
+        }
+
+        user.setIsEmailVerified(true);
+        user.setStatus(UserStatus.VERIFIED);
+
+        userRepository.save(user);
+        emailVerificationTokenRepository.delete(verificationToken);
+
+        log.info("Email verified for {}", user.getEmail());
+    }
 
     // =====================================================
-    // ADMIN APPROVES USER → SEND SET PASSWORD MAIL
+    // ADMIN APPROVES → SEND SET PASSWORD MAIL
     // =====================================================
 
+    @Override
     @Transactional
     public void approveUser(Long userId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+        if (user.getStatus() != UserStatus.VERIFIED) {
+            throw new BadRequestException("Only verified users can be approved");
+        }
+
         user.setStatus(UserStatus.APPROVED);
+        user.setApprovedAt(LocalDateTime.now());
         userRepository.save(user);
+
+        // Remove old tokens
+        passwordResetTokenRepository.deleteByUser(user);
 
         PasswordResetToken token = new PasswordResetToken();
         token.setToken(UUID.randomUUID().toString());
@@ -125,12 +164,11 @@ public class AuthServiceImpl implements AuthService {
 
         emailService.sendSetPasswordMail(user.getEmail(), token.getToken());
 
-        log.info("Approval mail sent to {}", user.getEmail());
+        log.info("User approved. Password setup mail sent to {}", user.getEmail());
     }
 
-
     // =====================================================
-    // SET PASSWORD AFTER APPROVAL
+    // USER SETS PASSWORD → ACCOUNT ACTIVE
     // =====================================================
 
     @Override
@@ -147,24 +185,26 @@ public class AuthServiceImpl implements AuthService {
 
         User user = resetToken.getUser();
 
-        // ✅ SET PASSWORD
-        user.setPassword(passwordEncoder.encode(password));
+        if (user.getStatus() != UserStatus.APPROVED) {
+            throw new BadRequestException("User is not approved yet");
+        }
 
-        // ✅ ACTIVATE USER (THIS WAS MISSING)
+        user.setPassword(passwordEncoder.encode(password));
         user.setStatus(UserStatus.ACTIVE);
         user.setIsActive(true);
         user.setMustResetPassword(false);
         user.setIsProfileComplete(true);
+
         userRepository.save(user);
-        // ✅ DELETE TOKEN AFTER USE
         passwordResetTokenRepository.delete(resetToken);
-        log.info("Password set successfully and user activated: {}", user.getEmail());
+
+        emailService.sendWelcomeEmail(user.getEmail(), user.getProfile().getFirstName(), null);
+
+        log.info("User activated successfully: {}", user.getEmail());
     }
 
-
-
     // =====================================================
-    // LOGIN (ONLY AFTER ACTIVE)
+    // LOGIN (ONLY ACTIVE USERS)
     // =====================================================
 
     @Override
@@ -174,8 +214,9 @@ public class AuthServiceImpl implements AuthService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("Invalid credentials"));
 
-        if (user.getStatus() != UserStatus.ACTIVE)
-            throw new BadRequestException("Account not activated yet");
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BadRequestException("Account is not active.");
+        }
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -192,10 +233,16 @@ public class AuthServiceImpl implements AuthService {
         return AuthResponse.builder()
                 .token(accessToken)
                 .refreshToken(refreshToken)
+                .userId(user.getId())   // ✅ ADD
+                .username(user.getUsername())   // ✅ ADD
                 .email(user.getEmail())
                 .roles(user.getRoles().stream().map(r -> r.getName().name()).toList())
                 .status(user.getStatus().name())
+                .isEmailVerified(Boolean.TRUE.equals(user.getIsEmailVerified())) // ✅ IMPORTANT
+                .isProfileComplete(Boolean.TRUE.equals(user.getIsProfileComplete()))
+                .profileCompletionPercentage(100)   // or calculate dynamically
                 .message("Login successful")
                 .build();
+
     }
 }

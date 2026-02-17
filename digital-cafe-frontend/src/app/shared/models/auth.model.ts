@@ -116,9 +116,9 @@ export interface RegisterResponse {
 }
 
 export enum UserRole {
-  ADMIN = "ROLE_ADMIN",
-  CAFE_OWNER = "ROLE_CAFE_OWNER",
-  CHEF = "ROLE_CHEF",
-  WAITER = "ROLE_WAITER",
-  CUSTOMER = "ROLE_CUSTOMER",
+  ADMIN = "ADMIN",
+  CAFE_OWNER = "CAFE_OWNER",
+  CHEF = "CHEF",
+  WAITER = "WAITER",
+  CUSTOMER = "CUSTOMER",
 }

@@ -84,7 +84,7 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     @Builder.Default
-    private UserStatus status = UserStatus.PENDING;
+    private UserStatus status = UserStatus.PENDING_VERIFICATION;
 
     @Column(name = "verification_token", length = 200)
     private String verificationToken;

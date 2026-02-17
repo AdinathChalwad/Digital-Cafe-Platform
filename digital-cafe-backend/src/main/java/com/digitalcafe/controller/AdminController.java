@@ -83,11 +83,11 @@ public class AdminController {
     // =========================================================
     // REJECT USER
     // =========================================================
-    @PostMapping("/users/{id}/reject")
-    public ResponseEntity<Map<String,String>> rejectUser(@PathVariable Long id){
-        userService.rejectUser(id);
-        return ResponseEntity.ok(Map.of("message","User rejected successfully"));
-    }
+//    @PostMapping("/users/{id}/reject")
+//    public ResponseEntity<Map<String,String>> rejectUser(@PathVariable Long id){
+//        userService.rejectUser(id);
+//        return ResponseEntity.ok(Map.of("message","User rejected successfully"));
+//    }
 
     // =========================================================
     // ACTIVATE USER

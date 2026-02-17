@@ -38,8 +38,20 @@ export class AuthService {
   }
 
   public get isAuthenticated(): boolean {
-    return !!this.getToken();
+  const token = localStorage.getItem(environment.tokenKey);
+  if (!token) return false;
+
+  // Restore user if missing (happens after refresh)
+  if (!this.currentUserSubject.value) {
+    const storedUser = localStorage.getItem(environment.userKey);
+    if (storedUser) {
+      this.currentUserSubject.next(JSON.parse(storedUser));
+    }
   }
+
+  return true;
+}
+
 
   public get userRoles(): string[] {
     return this.currentUserValue?.roles || [];
@@ -87,19 +99,19 @@ export class AuthService {
     );
   }
 
-  // verifyEmail(token: string): Observable<MessageResponse> {
-  //   return this.http
-  //     .get<MessageResponse>(`${this.apiUrl}/verify-email`, {
-  //       params: { token },
-  //     })
-  //     .pipe(catchError(this.handleError));
-  // }
+  verifyEmail(token: string): Observable<MessageResponse> {
+    return this.http
+      .get<MessageResponse>(`${this.apiUrl}/verify-email`, {
+        params: { token },
+      })
+      .pipe(catchError(this.handleError));
+  }
 
-  // resendVerificationEmail(email: string): Observable<MessageResponse> {
-  //   return this.http
-  //     .post<MessageResponse>(`${this.apiUrl}/resend-verification`, null, { params: { email } })
-  //     .pipe(catchError(this.handleError));
-  // }
+  resendVerificationEmail(email: string): Observable<MessageResponse> {
+    return this.http
+      .post<MessageResponse>(`${this.apiUrl}/resend-verification`, null, { params: { email } })
+      .pipe(catchError(this.handleError));
+  }
 
   resetPassword(request: PasswordResetRequest): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.apiUrl}/reset-password`, request).pipe(catchError(this.handleError));
@@ -182,6 +194,13 @@ export class AuthService {
     return '/auth/login';
   }
 
+  // ✅ ADMIN: Approve User
+approveUser(userId: number) {
+  return this.http.post(
+    `${this.apiUrl}/admin/users/approve/${userId}`,
+    {}
+  );
+}
   // =============================
 // SET PASSWORD (AFTER APPROVAL)
 // =============================

@@ -1,4 +1,5 @@
 import { Routes } from "@angular/router";
+import { ProfileComponent } from '@features/profile/profile.component';
 import { authGuard } from "./core/guards/auth.guard";
 import { roleGuard } from "./core/guards/role.guard";
 import { emailVerificationGuard } from "./core/guards/email-verification.guard";
@@ -58,7 +59,15 @@ export const routes: Routes = [
       .then(m => m.SetPasswordComponent)
 }
 ,
-  // Admin routes with layout
+{
+  path: 'auth/verify-email',
+  loadComponent: () =>
+    import('./features/auth/verify-email/verify-email.component')
+      .then(m => m.VerifyEmailComponent)
+},
+
+
+// Admin routes with layout
   {
     path: "admin",
     loadComponent: () =>

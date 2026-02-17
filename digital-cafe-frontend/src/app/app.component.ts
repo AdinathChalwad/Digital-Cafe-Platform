@@ -28,6 +28,23 @@ export class AppComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+
+    // ✅ Restore session if page refreshed (SAFE VERSION)
+    const token = localStorage.getItem('cafe_auth_token');
+    const storedUser = localStorage.getItem('cafe_user_data');
+
+    if (token && storedUser && !this.authService.currentUserValue) {
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        this.authService.updateUserData(parsedUser);
+      } catch (e) {
+        console.warn('Invalid stored user. Clearing session.');
+        localStorage.removeItem('cafe_auth_token');
+        localStorage.removeItem('cafe_refresh_token');
+        localStorage.removeItem('cafe_user_data');
+      }
+    }
+
     try {
       // If we're on the landing page and have a stored user but no valid token,
       // silently clear the auth state without redirecting

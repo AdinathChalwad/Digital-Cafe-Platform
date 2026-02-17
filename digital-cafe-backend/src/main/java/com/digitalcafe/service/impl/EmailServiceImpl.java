@@ -46,8 +46,8 @@ public class EmailServiceImpl implements EmailService {
         String subject = "Account Approved — Set Your Password";
 
         String body =
-                "Your account has been approved!\n\n"
-                        + "Click the link below to set your password:\n"
+                "Your account has been approved by the administrator.\n\n"
+                        + "Please create your password using the link below:\n"
                         + link
                         + "\n\nThis link expires in 24 hours.";
 
@@ -86,25 +86,31 @@ public class EmailServiceImpl implements EmailService {
 // =====================================================
 
     @Override
-    public void sendVerificationEmail(String to, String token, String tempPassword) {
+    public void sendVerificationEmail(String to, String token, String ignored) {
 
-        sendEmail(
-                to,
-                "Verify Your Email",
-                "Your temporary password: " + tempPassword
-                        + "\nVerification token: " + token
-        );
+        String link = "http://localhost:4200/auth/verify-email?token=" + token;
+
+        String subject = "Verify Your Email — Digital Cafe";
+
+        String body =
+                "Welcome to Digital Cafe!\n\n"
+                        + "Please verify your email by clicking the link below:\n"
+                        + link
+                        + "\n\nThis link will expire in 24 hours."
+                        + "\n\nIf you did not register, please ignore this email.";
+
+        sendEmail(to, subject, body);
     }
 
     @Override
-    public void sendWelcomeEmail(String to, String username, String tempPassword) {
+    public void sendWelcomeEmail(String to, String username, String ignored) {
 
         sendEmail(
                 to,
                 "Welcome to Digital Cafe",
                 "Hello " + username
-                        + "\nYour temporary password is: "
-                        + tempPassword
+                        + ",\n\nYour account is now active."
+                        + "\nYou can log in using your email and password."
         );
     }
 
@@ -145,13 +151,6 @@ public class EmailServiceImpl implements EmailService {
                         + bookingDetails
         );
     }
-    private void sendMail(String to, String subject, String text) {
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setTo(to);
-        msg.setSubject(subject);
-        msg.setText(text);
-        msg.setFrom("adinathchalwad40@gmail.com");
-        mailSender.send(msg);
-    }
+
 
 }

@@ -1,4 +1,8 @@
 import { Component, OnInit } from "@angular/core";
+import { ProfileComponent } from '@features/profile/profile.component';
+
+
+
 import { CommonModule } from "@angular/common";
 import { RouterModule, Router } from "@angular/router";
 import { AuthService } from "@core/auth/auth.service";
@@ -7,7 +11,7 @@ import { User } from "@shared/models/auth.model";
 @Component({
   selector: "app-navbar",
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, ProfileComponent],
   template: `
     <nav class="navbar">
       <div class="navbar-container">
@@ -90,10 +94,14 @@ import { User } from "@shared/models/auth.model";
                 (click)="closeMenu()"
                 >Dashboard</a
               >
-              <div class="user-menu">
-                <span class="user-name">{{ user.username }}</span>
-                <button class="btn-logout" (click)="logout()">Logout</button>
-              </div>
+
+
+  <button class="profile-btn" (click)="toggleProfile()">
+    👤
+  </button>
+
+
+
             </ng-container>
           </div>
 
@@ -114,7 +122,16 @@ import { User } from "@shared/models/auth.model";
           </button>
         </div>
       </div>
+      <!-- Profile Popup -->
+<div class="profile-overlay" *ngIf="profileOpen" (click)="closeProfile()"></div>
+
+<div class="profile-popup-wrapper" *ngIf="profileOpen">
+  <app-profile (closeProfile)="closeProfile()"></app-profile>
+</div>
+
     </nav>
+    <app-profile *ngIf="profileOpen" (closeProfile)="closeProfile()"></app-profile>
+
   `,
   styles: [
     `
@@ -343,6 +360,7 @@ import { User } from "@shared/models/auth.model";
 export class NavbarComponent implements OnInit {
   menuOpen = false;
   isAuthenticated = false;
+  profileOpen = false;
   user: User | null = null;
   dashboardRoute = "/";
   isDarkMode = false;
@@ -369,6 +387,14 @@ export class NavbarComponent implements OnInit {
 
   toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
+  }
+
+  toggleProfile(): void {
+    this.profileOpen = !this.profileOpen;
+  }
+
+  closeProfile(): void {
+    this.profileOpen = false;
   }
 
   closeMenu(): void {

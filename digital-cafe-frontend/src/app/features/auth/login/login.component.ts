@@ -33,20 +33,18 @@ export class LoginComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // Initialize the form first to prevent template errors
+    // Initialize login form
     this.loginForm = this.fb.group({
       email: ["", [Validators.required, Validators.email]],
       password: ["", [Validators.required, Validators.minLength(8)]],
     });
 
-    // Get return URL from route parameters or default to role dashboard
+    // Get return URL if redirected from guard
     this.returnUrl = this.route.snapshot.queryParams["returnUrl"] || "/";
 
-    // Check if already logged in and redirect asynchronously
+    // If already logged in → go directly to dashboard
     if (this.authService.isAuthenticated) {
-      setTimeout(() => {
-        this.router.navigate([this.authService.getRoleDashboardRoute()]);
-      }, 0);
+      this.router.navigate([this.authService.getRoleDashboardRoute()]);
     }
   }
 
@@ -59,94 +57,48 @@ export class LoginComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (!this.loginForm || this.loginForm.invalid) {
-      if (this.loginForm) {
-        Object.keys(this.loginForm.controls).forEach((key) => {
-          this.loginForm.controls[key].markAsTouched();
-        });
-      }
-      return;
-    }
-
-    this.loading = true;
-    console.log("Attempting login with:", this.loginForm.value);
-
-    this.authService.login(this.loginForm.value).subscribe({
-      next: (response) => {
-        this.loading = false;
-        console.log("=== LOGIN SUCCESS ===");
-        console.log("Full response:", response);
-        console.log("User roles from response:", response.roles);
-        console.log("Profile complete:", response.isProfileComplete);
-
-        this.notificationService.success("Login successful!");
-
-        // Check if user must reset password
-        // if (response.mustResetPassword) {
-        //   console.log("User must reset password, redirecting...");
-        //   this.router.navigate(["/auth/reset-password"]);
-        //   return;
-        // }
-
-        // Check if email is verified (bypass for admins - handled by backend)
-        // if (!response.isEmailVerified) {
-        //   console.log("Email not verified, redirecting...");
-        //   this.router.navigate(["/auth/verify-email"]);
-        //   return;
-        // }
-
-        // Check if profile is complete (for customers)
-        if (this.authService.isCustomer() && !response.isProfileComplete) {
-          console.log("Profile incomplete for customer, redirecting...");
-          this.router.navigate(["/customer/complete-profile"]);
-          return;
-        }
-
-        // Navigate to the appropriate dashboard based on user role
-        const dashboardRoute = this.authService.getRoleDashboardRoute();
-        console.log("=== NAVIGATION INFO ===");
-        console.log("User roles from AuthService:", this.authService.userRoles);
-        console.log("Is Admin?:", this.authService.isAdmin());
-        console.log("Dashboard route:", dashboardRoute);
-        console.log(
-          "Stored user data:",
-          localStorage.getItem("cafe_user_data"),
-        );
-        console.log(
-          "Stored token:",
-          localStorage.getItem("cafe_auth_token")
-            ? "Token exists (" +
-                localStorage.getItem("cafe_auth_token")?.substring(0, 20) +
-                "...)"
-            : "No token found",
-        );
-
-        // Delay navigation slightly to allow state to settle
-        setTimeout(() => {
-          console.log("Attempting navigation to:", dashboardRoute);
-          this.router.navigate([dashboardRoute]).then(
-            (success) => {
-              console.log("Navigation result:", success);
-              if (!success) {
-                console.error("Navigation was blocked! Checking guards...");
-                console.log("Current user:", this.authService.currentUserValue);
-                console.log(
-                  "Is authenticated:",
-                  this.authService.isAuthenticated,
-                );
-              }
-            },
-            (error) => console.error("Navigation error:", error),
-          );
-        }, 100);
-      },
-      error: (error) => {
-        this.loading = false;
-        console.error("Login error:", error);
-        this.notificationService.error(
-          error.message || "Login failed. Please check your credentials.",
-        );
-      },
+  if (!this.loginForm || this.loginForm.invalid) {
+    Object.keys(this.loginForm.controls).forEach((key) => {
+      this.loginForm.controls[key].markAsTouched();
     });
+    return;
   }
+
+  this.loading = true;
+
+  this.authService.login(this.loginForm.value).subscribe({
+    next: (response) => {
+      this.loading = false;
+
+      this.notificationService.success("Login successful!");
+
+      // If customer profile incomplete → redirect to complete profile
+      if (response.roles?.includes("CUSTOMER") && !response.isProfileComplete) {
+        this.router.navigate(["/customer/complete-profile"]);
+        return;
+      }
+
+      // ✅ ROLE BASED REDIRECT (directly from response)
+      if (response.roles?.includes("ADMIN")) {
+        this.router.navigate(["/admin/dashboard"]);
+      } else if (response.roles?.includes("CAFE_OWNER")) {
+        this.router.navigate(["/cafe-owner/dashboard"]);
+      } else if (response.roles?.includes("CHEF")) {
+        this.router.navigate(["/chef/dashboard"]);
+      } else if (response.roles?.includes("WAITER")) {
+        this.router.navigate(["/waiter/dashboard"]);
+      } else {
+        this.router.navigate(["/customer/dashboard"]);
+      }
+    },
+
+    error: (error) => {
+      this.loading = false;
+      this.notificationService.error(
+        error.message || "Login failed. Please check your credentials."
+      );
+    },
+  });
+}
+
 }

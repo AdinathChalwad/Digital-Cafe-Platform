@@ -24,13 +24,13 @@ public interface UserService {
 
     void approveUser(Long id);
 
-    void rejectUser(Long id);
+//    void rejectUser(Long id);
 
     List<UserResponse> getPendingUsers();
 
     // ================= PASSWORD SETUP =================
 
-    void setPassword(String token, String password);
+//    void setPassword(String token, String password);
 
     // ================= USER MANAGEMENT =================
 

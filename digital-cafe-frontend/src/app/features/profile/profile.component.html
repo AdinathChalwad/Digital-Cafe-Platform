@@ -1,0 +1,52 @@
+<ng-container *ngIf="currentUser$ | async as user">
+
+  <div class="profile-popup">
+
+    <!-- Close -->
+    <button class="close-btn" (click)="close()">✖</button>
+
+    <!-- Title -->
+    <h2 class="title">My Profile</h2>
+    <p class="subtitle">Welcome back, {{ user?.username }}</p>
+
+    <!-- Avatar -->
+    <div class="avatar">
+      {{ user?.username ? user.username.charAt(0).toUpperCase() : '?' }}
+    </div>
+
+    <!-- Info -->
+    <div class="info">
+      <div class="info-row">
+        <span>Email</span>
+        <strong>{{ user?.email }}</strong>
+      </div>
+
+      <div class="info-row">
+        <span>Role</span>
+        <strong>{{ user?.roles?.[0] }}</strong>
+      </div>
+
+      <div class="info-row">
+        <span>Email Verified</span>
+        <strong>{{ user?.isEmailVerified ? 'Yes' : 'No' }}</strong>
+      </div>
+
+      <div class="info-row">
+        <span>Profile Complete</span>
+        <strong>{{ user?.isProfileComplete ? 'Yes' : 'No' }}</strong>
+      </div>
+    </div>
+
+    <!-- Logout Success Message -->
+<div class="logout-message" *ngIf="showLogoutMessage">
+  ✅ Logout Successful
+</div>
+
+   <div class="profile-actions">
+  <button class="close-btn" (click)="close()">Close</button>
+  <button class="logout-btn" (click)="logout()">Logout</button>
+</div>
+
+  </div>
+
+</ng-container>

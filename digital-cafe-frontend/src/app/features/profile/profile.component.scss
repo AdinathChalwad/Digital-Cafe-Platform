@@ -1,0 +1,156 @@
+/* Floating Card */
+.profile-popup {
+  position: fixed;
+  top: 90px;
+  right: 20px;
+  width: 360px;
+  max-width: 92%;
+  padding: 2rem;
+  border-radius: 16px;
+
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #ffffff;
+
+  box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+  z-index: 9999;
+
+  animation: slideIn 0.25s ease;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Title */
+.title {
+  margin: 0;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.subtitle {
+  text-align: center;
+  font-size: 0.9rem;
+  opacity: 0.85;
+  margin-bottom: 1.5rem;
+}
+
+/* Avatar */
+.avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #667eea;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 1.6rem;
+  font-weight: bold;
+  margin: 0 auto 1.5rem;
+}
+
+/* Info Section */
+.info {
+  background: rgba(255,255,255,0.12);
+  padding: 1rem;
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.6rem 0;
+  font-size: 0.95rem;
+}
+
+.info-row span {
+  opacity: 0.8;
+}
+
+/* Close X */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+/* Bottom Button */
+.close-btn-main {
+  width: 100%;
+  margin-top: 1.5rem;
+  padding: 0.7rem;
+  border: none;
+  border-radius: 6px;
+
+  background: #ffffff;
+  color: #667eea;
+  font-weight: 600;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+.close-btn-main:hover {
+  background: #f1f1f1;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from { transform: translateY(-15px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Responsive */
+@media (max-width:768px) {
+  .profile-popup {
+    right: 10px;
+    width: 92%;
+  }
+}
+.profile-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Close Button */
+.close-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: #e5e7eb;
+  color: #1f2937;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.close-btn:hover {
+  background: #d1d5db;
+}
+
+/* Logout Button */
+.logout-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  background: #ef4444;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.logout-btn:hover {
+  background: #dc2626;
+}
